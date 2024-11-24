@@ -1,13 +1,13 @@
 const express = require('express');
 const Product = require('./modelos/Product');
 const sequelize = require('./config/database');
+const cors = require('cors');
 
-
-const app = express();
+const app = express(); // Debe estar primero
+app.use(cors()); // Esto permite las solicitudes desde diferentes orígenes
 app.use(express.json());
 
 const port = 5000;
-
 
 // valor minimo
 app.get('/producto/valor-minimo', async (req, res) => {
@@ -36,9 +36,10 @@ app.get('/producto/valor-total-tipo', async (req, res) => {
 
         res.json(result);
     } catch (error) {
-        res.status(400).json({ error: 'No se conecto: ' + error.message });
+        res.status(400).json({ error: 'No se conectó: ' + error.message });
     }
 });
+
 // valor alto
 app.get('/producto/valor-maximo', async (req, res) => {
     try {
@@ -47,17 +48,18 @@ app.get('/producto/valor-maximo', async (req, res) => {
             order: [['value', 'DESC']],
         });
 
-        res.json(result);
+        // Devolver solo el valor máximo
+        res.json({ valor: result ? result.value : 0 });
     } catch (error) {
-        res.status(300).json({ error: 'Error: ' + error.message });
+        res.status(500).json({ error: 'Error: ' + error.message });
     }
 });
 
-// conexion con el servidor y bd
+// conexión con el servidor y BD
 sequelize.sync({ force: false })
     .then(() => {
         app.listen(port, () => {
-            console.log(`corriendo en ${port}`);
+            console.log(`Servidor corriendo en http://localhost:${port}`);
         });
     })
-    .catch(err => console.error('Error al conectarse con BD:', err));
+    .catch(err => console.error('Error al conectarse con la BD:', err));
